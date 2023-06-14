@@ -39,10 +39,11 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.core.os.CancellationSignal;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.BuildConfig;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
+import org.thunderdog.challegram.TDLib;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.config.Config;
 import org.thunderdog.challegram.config.Device;
@@ -55,7 +56,7 @@ import org.thunderdog.challegram.receiver.TGMessageReceiver;
 import org.thunderdog.challegram.receiver.TGRemoveAllReceiver;
 import org.thunderdog.challegram.receiver.TGRemoveReceiver;
 import org.thunderdog.challegram.receiver.TGWearReplyReceiver;
-import org.thunderdog.challegram.theme.ThemeColorId;
+import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.tool.DrawAlgorithms;
 import org.thunderdog.challegram.tool.Intents;
 import org.thunderdog.challegram.tool.Strings;
@@ -276,7 +277,17 @@ public class TdlibNotificationStyle implements TdlibNotificationStyleDelegate, F
     String channelId;
     String rShortcutId = null;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      android.app.NotificationChannel channel = (android.app.NotificationChannel) tdlib.notifications().getSystemChannel(group);
+      android.app.NotificationChannel channel;
+      try {
+        channel = (android.app.NotificationChannel) tdlib.notifications().getSystemChannel(group);
+      } catch (TdlibNotificationChannelGroup.ChannelCreationFailureException e) {
+        TDLib.Tag.notifications("Unable to get notification channel for group.id %d:\n%s",
+          group.getId(),
+          Log.toString(e)
+        );
+        tdlib.settings().trackNotificationChannelProblem(e, group.getChatId());
+        channel = null;
+      }
       if (channel == null) {
         group.markAsHidden(TdlibNotificationGroup.HIDE_REASON_DISABLED_CHANNEL);
         return DISPLAY_STATE_FAIL;
@@ -837,7 +848,7 @@ public class TdlibNotificationStyle implements TdlibNotificationStyleDelegate, F
     return buildPerson(context, notification.isSelfChat(), TD.isMultiChat(chat), tdlib.isChannelChat(chat), Long.toString(chat.id), tdlib.isBotChat(chat) || tdlib.isChannelChat(chat), chat.title, tdlib.chatLetters(chat), tdlib.chatAvatarColorId(chat), chat.photo != null ? chat.photo.small : null, isScheduled, isSilent, allowDownload);
   }
 
-  public static Person buildPerson (TdlibNotificationManager context, boolean isSelfChat, boolean isGroupChat, boolean isChannel, String id, boolean isBot, String name, Letters letters, @ThemeColorId int colorId, TdApi.File photo, boolean isScheduled, boolean isSilent, boolean allowDownload) {
+  public static Person buildPerson (TdlibNotificationManager context, boolean isSelfChat, boolean isGroupChat, boolean isChannel, String id, boolean isBot, String name, Letters letters, @ColorId int colorId, TdApi.File photo, boolean isScheduled, boolean isSilent, boolean allowDownload) {
     Person.Builder b = new Person.Builder();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       b.setKey(id);
@@ -1002,7 +1013,15 @@ public class TdlibNotificationStyle implements TdlibNotificationStyleDelegate, F
     int displayingMessageCount = helper.calculateMessageCount(category);
     long timeMs = TimeUnit.SECONDS.toMillis(lastNotification.notification().date);
 
-    NotificationCompat.Builder b = new NotificationCompat.Builder(context, helper.findCommonChannelId(category));
+    String commonChannelId;
+    try {
+      commonChannelId = helper.findCommonChannelId(category);
+    } catch (TdlibNotificationChannelGroup.ChannelCreationFailureException e) {
+      TDLib.Tag.notifications("Unable to create common notification channel:\n%s", Log.toString(e));
+      tdlib.settings().trackNotificationChannelProblem(e, 0);
+      return null;
+    }
+    NotificationCompat.Builder b = new NotificationCompat.Builder(context, commonChannelId);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       if (allowPreview) {
         b.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN);

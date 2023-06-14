@@ -21,19 +21,19 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.component.dialogs.ChatView;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.loader.ComplexReceiver;
-import org.thunderdog.challegram.loader.ImageFile;
 import org.thunderdog.challegram.navigation.ViewController;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibChatList;
 import org.thunderdog.challegram.telegram.TdlibCounter;
 import org.thunderdog.challegram.telegram.TdlibStatusManager;
-import org.thunderdog.challegram.theme.ThemeColorId;
+import org.thunderdog.challegram.theme.ColorId;
+import org.thunderdog.challegram.theme.PorterDuffColorId;
 import org.thunderdog.challegram.tool.Icons;
 import org.thunderdog.challegram.tool.Paints;
 import org.thunderdog.challegram.tool.Screen;
@@ -43,10 +43,8 @@ import org.thunderdog.challegram.util.text.Text;
 import org.thunderdog.challegram.util.text.TextColorSets;
 import org.thunderdog.challegram.util.text.TextEntity;
 import org.thunderdog.challegram.util.text.TextEntityCustom;
-import org.thunderdog.challegram.util.text.TextMedia;
 import org.thunderdog.challegram.util.text.TextStyleProvider;
 
-import java.lang.ref.Reference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,11 +52,11 @@ import java.util.concurrent.TimeUnit;
 import me.vkryl.android.animator.BounceAnimator;
 import me.vkryl.android.util.MultipleViewProvider;
 import me.vkryl.core.ArrayUtils;
+import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.Destroyable;
-import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.reference.ReferenceList;
 import me.vkryl.td.ChatId;
 import me.vkryl.td.ChatPosition;
@@ -109,8 +107,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
 
   private TD.ContentPreview currentPreview;
   private IntList textIconIds;
-  private @ThemeColorId
-  int textIconColorId;
+  private @PorterDuffColorId int textIconColorId;
 
   private int textLeft;
   private int timeLeft;
@@ -169,7 +166,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
       .callback(this)
       .noBackground()
       .allBold(false)
-      .textColor(R.id.theme_color_ticksRead)
+      .textColor(ColorId.ticksRead)
       .drawable(R.drawable.baseline_visibility_14, 14f, 3f, Gravity.RIGHT)
       .build();
     setCounter(false);
@@ -688,7 +685,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
 
   private void setAvatar () {
     if (isArchive()) {
-      avatarPlaceholder = new AvatarPlaceholder.Metadata(R.id.theme_color_avatarArchive, R.drawable.baseline_archive_24);
+      avatarPlaceholder = new AvatarPlaceholder.Metadata(ColorId.avatarArchive, R.drawable.baseline_archive_24);
     } else {
       avatarPlaceholder = null;
     }
@@ -1091,7 +1088,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
     return textIconIds;
   }
 
-  public @ThemeColorId int getTextIconColorId () {
+  public @PorterDuffColorId int getTextIconColorId () {
     return textIconColorId;
   }
 
@@ -1123,7 +1120,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
           avail = Screen.dp(120f);
         }
         if (avail > 0) {
-          Text.Builder b = new Text.Builder(prefix, avail, getTextStyleProvider(listMode), BitwiseUtils.getFlag(flags, FLAG_TEXT_DRAFT) ? TextColorSets.Regular.NEGATIVE : TextColorSets.Regular.NORMAL)
+          Text.Builder b = new Text.Builder(prefix, avail, getTextStyleProvider(listMode), BitwiseUtils.hasFlag(flags, FLAG_TEXT_DRAFT) ? TextColorSets.Regular.NEGATIVE : TextColorSets.Regular.NORMAL)
             .singleLine()
             .textFlags(Text.FLAG_ELLIPSIZE_NO_FILL);
           if (needSuffix && listMode == Settings.CHAT_MODE_2LINE) {
@@ -1309,7 +1306,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
     if (preview.emoji != null) {
       addIcon(preview.emoji.iconRepresentation);
     }
-    this.textIconColorId = R.id.theme_color_chatListIcon;
+    this.textIconColorId = ColorId.chatListIcon;
 
     if ((isGroup() || isSupergroup()) && !preview.hideAuthor) {
       flags |= FLAG_HAS_PREFIX;
@@ -1421,7 +1418,7 @@ public class TGChat implements TdlibStatusManager.HelperTarget, TD.ContentPrevie
 
   @Override
   public boolean canLoop () {
-    return BitwiseUtils.getFlag(flags, FLAG_ATTACHED);
+    return BitwiseUtils.hasFlag(flags, FLAG_ATTACHED);
   }
 
   @Override

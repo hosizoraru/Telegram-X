@@ -23,7 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.drinkmore.Tracer;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.config.Config;
@@ -356,7 +356,7 @@ public class TdlibNotificationHelper implements Iterable<TdlibNotificationGroup>
   }
 
   @TargetApi(Build.VERSION_CODES.O)
-  public String findCommonChannelId (int category) {
+  public String findCommonChannelId (int category) throws TdlibNotificationChannelGroup.ChannelCreationFailureException {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       TdlibNotificationChannelGroup channelGroup = tdlib.notifications().getChannelCache();
       android.app.NotificationChannel channel = null;

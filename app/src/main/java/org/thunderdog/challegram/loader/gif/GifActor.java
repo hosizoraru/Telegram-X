@@ -22,8 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
-import org.drinkless.td.libcore.telegram.Client;
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.Client;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.N;
 import org.thunderdog.challegram.U;
@@ -622,8 +622,8 @@ public class GifActor implements GifState.Callback, TGPlayerController.TrackChan
   // GifStage thread
   public void nextFrameReady (boolean restarted) {
     synchronized (this) {
-      if (BitwiseUtils.getFlag(flags, FLAG_AWAITING)) {
-        boolean fromRestart = BitwiseUtils.getFlag(flags, FLAG_AWAITING_FROM_RESTART);
+      if (BitwiseUtils.hasFlag(flags, FLAG_AWAITING)) {
+        boolean fromRestart = BitwiseUtils.hasFlag(flags, FLAG_AWAITING_FROM_RESTART);
         flags &= ~FLAG_AWAITING;
         flags &= ~FLAG_AWAITING_FROM_RESTART;
         onNextFrame(false, fromRestart || restarted);

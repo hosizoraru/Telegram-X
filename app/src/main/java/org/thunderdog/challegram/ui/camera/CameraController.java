@@ -42,7 +42,7 @@ import androidx.annotation.AnyThread;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
@@ -77,10 +77,10 @@ import java.util.ArrayList;
 import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.android.widget.FrameLayoutFix;
+import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.CancellableRunnable;
-import me.vkryl.core.BitwiseUtils;
 
 public class CameraController extends ViewController<Void> implements CameraDelegate, SensorEventListener, FactorAnimator.Target, View.OnClickListener, CameraButton.RecordListener, CameraOverlayView.FlashListener, Settings.SettingsChangeListener {
   public static final String[] VIDEO_PERMISSIONS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ? new String[] {
@@ -264,7 +264,7 @@ public class CameraController extends ViewController<Void> implements CameraDele
 
   @Override
   public void onSettingsChanged (long newSettings, long oldSettings) {
-    cameraOverlayView.setGridVisible(cameraMode == MODE_MAIN && BitwiseUtils.getFlag(newSettings, Settings.SETTING_FLAG_CAMERA_SHOW_GRID), isFocused());
+    cameraOverlayView.setGridVisible(cameraMode == MODE_MAIN && BitwiseUtils.hasFlag(newSettings, Settings.SETTING_FLAG_CAMERA_SHOW_GRID), isFocused());
   }
 
   public boolean isLegacy () {
@@ -302,13 +302,13 @@ public class CameraController extends ViewController<Void> implements CameraDele
   }
 
   public void takeCameraLayout (ViewGroup toGroup, int index) {
-    get();
+    getValue();
     Views.moveView(contentView, toGroup, index);
     manager.getView().requestLayout();
   }
 
   public void releaseCameraLayout () {
-    get();
+    getValue();
     Views.moveView(contentView, rootLayout, 0);
     manager.getView().requestLayout();
   }
@@ -351,15 +351,11 @@ public class CameraController extends ViewController<Void> implements CameraDele
 
   @Override
   public void onClick (View v) {
-    switch (v.getId()) {
-      case R.id.btn_camera_switch: {
-        switchCamera();
-        break;
-      }
-      case R.id.btn_camera_flash: {
-        manager.switchFlashMode();
-        break;
-      }
+    final int viewId = v.getId();
+    if (viewId == R.id.btn_camera_switch) {
+      switchCamera();
+    } else if (viewId == R.id.btn_camera_flash) {
+      manager.switchFlashMode();
     }
   }
 

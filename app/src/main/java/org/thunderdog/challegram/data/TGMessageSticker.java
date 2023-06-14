@@ -21,8 +21,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.Client;
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.Client;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.component.chat.MessageView;
 import org.thunderdog.challegram.component.chat.MessagesManager;
@@ -685,7 +685,7 @@ public class TGMessageSticker extends TGMessage implements AnimatedEmojiListener
             case SPECIAL_TYPE_ANIMATED_EMOJI: {
               GifFile animatedFile = view.getComplexReceiver() != null ? view.getComplexReceiver().getGifReceiver(0).getCurrentFile() : null;
               if (Config.LOOP_BIG_CUSTOM_EMOJI && Td.customEmojiId(sticker) != 0) {
-                tapProcessed = fallbackAct.get();
+                tapProcessed = fallbackAct.getBoolValue();
               } else if (animatedFile != null) {
                 tapProcessed = animatedFile.setVibrationPattern(Emoji.instance().getVibrationPatternType(sticker.emoji));
                 if (animatedFile.setLooped(false)) {
@@ -696,7 +696,7 @@ public class TGMessageSticker extends TGMessage implements AnimatedEmojiListener
               break;
             }
             default: {
-              tapProcessed = fallbackAct.get();
+              tapProcessed = fallbackAct.getBoolValue();
               break;
             }
           }

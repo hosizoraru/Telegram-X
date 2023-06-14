@@ -17,7 +17,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.component.chat.MessagesManager;
 import org.thunderdog.challegram.core.Lang;
@@ -360,7 +360,7 @@ public class ThreadInfo {
           int newIndex = 0;
           for (int index = 0; index < messageCount; index++) {
             TdApi.Message message = threadInfo.messages[index];
-            if (!BitwiseUtils.getFlag(deleted, 1 << index)) {
+            if (!BitwiseUtils.hasFlag(deleted, 1 << index)) {
               newMessages[newIndex++] = message;
             } else if (message.canGetMessageThread) {
               isMessageThreadDeleted = true;

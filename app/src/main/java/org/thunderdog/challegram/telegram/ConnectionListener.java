@@ -14,9 +14,10 @@
  */
 package org.thunderdog.challegram.telegram;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 
 public interface ConnectionListener {
   default void onConnectionStateChanged (@ConnectionState int newState, int oldState) { }
   default void onConnectionTypeChanged (TdApi.NetworkType type) { }
+  default void onConnectionDisplayStatusChanged () { }
 }

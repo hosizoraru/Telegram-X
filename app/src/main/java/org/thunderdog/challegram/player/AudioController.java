@@ -40,7 +40,7 @@ import com.google.android.exoplayer2.metadata.id3.ApicFrame;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
@@ -364,7 +364,7 @@ public class AudioController extends BasePlaybackController implements TGAudio.P
       exoPlayer = null;
     }
 
-    exoPlayer = U.newExoPlayer(UI.getAppContext(), true);
+    ExoPlayer exoPlayer = this.exoPlayer = U.newExoPlayer(UI.getAppContext(), true);
     exoPlayer.addListener(this);
     setExoPlayerParameters();
     exoPlayer.setVolume(volume);
@@ -616,6 +616,9 @@ public class AudioController extends BasePlaybackController implements TGAudio.P
   // ExoPlayer seek
 
   private static void seekTo (@NonNull Player player, int windowIndex, int totalSize, boolean reverse) {
+    if (player == null) {
+      throw new NullPointerException();
+    }
     Log.i(Log.TAG_PLAYER, "seekTo windowIndex:%d size:%d, reverse:%b", windowIndex, totalSize, reverse);
     try {
       player.seekToDefaultPosition(reverse ? totalSize - windowIndex - 1 : windowIndex);

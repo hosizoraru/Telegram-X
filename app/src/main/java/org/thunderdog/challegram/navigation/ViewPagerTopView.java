@@ -29,8 +29,6 @@ import android.view.ViewParent;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 
-import org.drinkless.td.libcore.telegram.TdApi;
-import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.component.sticker.TGStickerObj;
 import org.thunderdog.challegram.core.Lang;
@@ -38,8 +36,8 @@ import org.thunderdog.challegram.data.TGReaction;
 import org.thunderdog.challegram.loader.ComplexReceiver;
 import org.thunderdog.challegram.loader.ImageReceiver;
 import org.thunderdog.challegram.support.RippleSupport;
+import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.theme.Theme;
-import org.thunderdog.challegram.theme.ThemeColorId;
 import org.thunderdog.challegram.tool.Drawables;
 import org.thunderdog.challegram.tool.Paints;
 import org.thunderdog.challegram.tool.Screen;
@@ -189,8 +187,10 @@ public class ViewPagerTopView extends FrameLayoutFix implements RtlCheckListener
   private int textPadding;
   private ComplexReceiver complexReceiver;
 
-  private @ThemeColorId int fromTextColorId, toTextColorId = R.id.theme_color_headerText;
-  private @ThemeColorId int selectionColorId;
+  private @ColorId int
+    fromTextColorId = ColorId.NONE,
+    toTextColorId = ColorId.headerText;
+  private @ColorId int selectionColorId;
 
   public ViewPagerTopView (Context context) {
     super(context);
@@ -507,12 +507,13 @@ public class ViewPagerTopView extends FrameLayoutFix implements RtlCheckListener
     int selectionWidth, selectionLeft;
     if (shouldWrapContent()) {
       float remainFactor = selectionFactor - (float) ((int) selectionFactor);
+      int selectionIndex = MathUtils.clamp((int) selectionFactor, 0, items.size() - 1);
       if (remainFactor == 0f) {
-        int selectionIndex = Math.max(0, Math.min(items.size() - 1, (int) selectionFactor));
         selectionWidth = items.get(selectionIndex).actualWidth + textPadding * 2;
       } else {
-        int fromWidth = items.get((int) selectionFactor).actualWidth + textPadding * 2;
-        int toWidth = items.get((int) selectionFactor + 1).actualWidth + textPadding * 2;
+        int fromWidth = items.get(selectionIndex).actualWidth + textPadding * 2;
+        int nextIndex = MathUtils.clamp((int) selectionFactor + 1, 0, items.size() - 1);
+        int toWidth = items.get(nextIndex).actualWidth + textPadding * 2;
         selectionWidth = fromWidth + (int) ((float) (toWidth - fromWidth) * remainFactor);
       }
       selectionLeft = 0;
@@ -585,7 +586,7 @@ public class ViewPagerTopView extends FrameLayoutFix implements RtlCheckListener
     }
   }
 
-  public boolean setTextFromToColorId (@ThemeColorId int fromColorId, @ThemeColorId int toColorId) {
+  public boolean setTextFromToColorId (@ColorId int fromColorId, @ColorId int toColorId) {
     if (this.fromTextColorId != fromColorId || this.toTextColorId != toColorId) {
       this.fromTextColorId = fromColorId;
       this.toTextColorId = toColorId;
@@ -595,7 +596,7 @@ public class ViewPagerTopView extends FrameLayoutFix implements RtlCheckListener
     return false;
   }
 
-  public boolean setSelectionColorId (@ThemeColorId int colorId) {
+  public boolean setSelectionColorId (@ColorId int colorId) {
     if (this.selectionColorId != colorId) {
       this.selectionColorId = colorId;
       invalidate();
@@ -665,8 +666,8 @@ public class ViewPagerTopView extends FrameLayoutFix implements RtlCheckListener
 
     if (overlayFactor != 1f) {
       int textToColor = Theme.getColor(toTextColorId);
-      int textFromColor = fromTextColorId != 0 ? Theme.getColor(fromTextColorId) : ColorUtils.alphaColor(Theme.getSubtitleAlpha(), Theme.getColor(R.id.theme_color_headerText));
-      int selectionColor = selectionColorId != 0 ? Theme.getColor(selectionColorId) : ColorUtils.alphaColor(.9f, Theme.getColor(R.id.theme_color_headerText));
+      int textFromColor = fromTextColorId != 0 ? Theme.getColor(fromTextColorId) : ColorUtils.alphaColor(Theme.getSubtitleAlpha(), Theme.getColor(ColorId.headerText));
+      int selectionColor = selectionColorId != 0 ? Theme.getColor(selectionColorId) : ColorUtils.alphaColor(.9f, Theme.getColor(ColorId.headerText));
 
       boolean rtl = Lang.rtl();
 

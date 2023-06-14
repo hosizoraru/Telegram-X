@@ -20,7 +20,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.core.Lang;
@@ -155,9 +155,9 @@ public class TextEntityCustom extends TextEntity {
       colorSet = customColorSet;
     } else if (linkType == LINK_TYPE_REFERENCE) {
       colorSet = TextColorSets.InstantView.REFERENCE;
-    } else if (BitwiseUtils.getFlag(flags, FLAG_MARKED)) {
+    } else if (BitwiseUtils.hasFlag(flags, FLAG_MARKED)) {
       colorSet = TextColorSets.InstantView.Marked.NORMAL;
-    } else if (BitwiseUtils.getFlag(flags, FLAG_MONOSPACE)) {
+    } else if (BitwiseUtils.hasFlag(flags, FLAG_MONOSPACE)) {
       colorSet = TextColorSets.InstantView.Monospace.NORMAL;
     } else {
       colorSet = null;
@@ -186,7 +186,7 @@ public class TextEntityCustom extends TextEntity {
 
   @Override
   public boolean isSmall () {
-    return BitwiseUtils.getFlag(flags, FLAG_SUPERSCRIPT) || BitwiseUtils.getFlag(flags, FLAG_SUBSCRIPT);
+    return BitwiseUtils.hasFlag(flags, FLAG_SUPERSCRIPT) || BitwiseUtils.hasFlag(flags, FLAG_SUBSCRIPT);
   }
 
   @Override
@@ -217,11 +217,11 @@ public class TextEntityCustom extends TextEntity {
   @Override
   public float getBaselineShift () {
     float baselineShift;
-    if (BitwiseUtils.getFlag(flags, FLAG_SUPERSCRIPT) && BitwiseUtils.getFlag(flags, FLAG_SUBSCRIPT)) {
+    if (BitwiseUtils.hasFlag(flags, FLAG_SUPERSCRIPT) && BitwiseUtils.hasFlag(flags, FLAG_SUBSCRIPT)) {
       baselineShift = 0f;
-    } else if (BitwiseUtils.getFlag(flags, FLAG_SUPERSCRIPT)) {
+    } else if (BitwiseUtils.hasFlag(flags, FLAG_SUPERSCRIPT)) {
       baselineShift = .4f;
-    } else if (BitwiseUtils.getFlag(flags, FLAG_SUBSCRIPT)) {
+    } else if (BitwiseUtils.hasFlag(flags, FLAG_SUBSCRIPT)) {
       baselineShift = -.4f;
     } else {
       baselineShift = 0f;
@@ -270,22 +270,22 @@ public class TextEntityCustom extends TextEntity {
 
   @Override
   public boolean isBold () {
-    return BitwiseUtils.getFlag(flags, FLAG_BOLD);
+    return BitwiseUtils.hasFlag(flags, FLAG_BOLD);
   }
 
   @Override
   public boolean isItalic () {
-    return BitwiseUtils.getFlag(flags, FLAG_ITALIC);
+    return BitwiseUtils.hasFlag(flags, FLAG_ITALIC);
   }
 
   @Override
   public boolean isUnderline () {
-    return BitwiseUtils.getFlag(flags, FLAG_UNDERLINE);
+    return BitwiseUtils.hasFlag(flags, FLAG_UNDERLINE);
   }
 
   @Override
   public boolean isStrikethrough () {
-    return BitwiseUtils.getFlag(flags, FLAG_STRIKETHROUGH);
+    return BitwiseUtils.hasFlag(flags, FLAG_STRIKETHROUGH);
   }
 
   @Override
@@ -402,22 +402,15 @@ public class TextEntityCustom extends TextEntity {
     final int[] shareState = {0};
 
     context.showOptions(copyText, ids.get(), strings.get(), null, icons.get(), (itemView, id) -> {
-      switch (id) {
-        case R.id.btn_copyLink: {
-          UI.copyText(copyText, R.string.CopiedLink);
-          break;
+      if (id == R.id.btn_copyLink) {
+        UI.copyText(copyText, R.string.CopiedLink);
+      } else if (id == R.id.btn_shareLink) {
+        if (shareState[0] == 0) {
+          shareState[0] = 1;
+          TD.shareLink(new TdlibContext(context.context(), tdlib), copyText);
         }
-        case R.id.btn_shareLink: {
-          if (shareState[0] == 0) {
-            shareState[0] = 1;
-            TD.shareLink(new TdlibContext(context.context(), tdlib), copyText);
-          }
-          break;
-        }
-        case R.id.btn_openLink: {
-          performClick(view, text, part, clickCallback);
-          break;
-        }
+      } else if (id == R.id.btn_openLink) {
+        performClick(view, text, part, clickCallback);
       }
       return true;
     }, clickCallback != null ? clickCallback.getForcedTheme(view, text) : null);

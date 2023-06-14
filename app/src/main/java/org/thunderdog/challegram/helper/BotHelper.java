@@ -17,8 +17,8 @@ package org.thunderdog.challegram.helper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.Client;
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.Client;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.data.InlineResult;
 import org.thunderdog.challegram.data.InlineResultCommand;
@@ -193,9 +193,6 @@ public class BotHelper implements Client.ResultHandler, Runnable, InlineSearchCo
   }
 
   @Override
-  public void onUserUpdated (TdApi.User user) { }
-
-  @Override
   public void onUserFullUpdated (long userId, TdApi.UserFullInfo userFull) {
     processUserFull(userFull);
   }
@@ -339,18 +336,26 @@ public class BotHelper implements Client.ResultHandler, Runnable, InlineSearchCo
     }
     switch (markup.getConstructor()) {
       case TdApi.ReplyMarkupRemoveKeyboard.CONSTRUCTOR: {
-        processHideKeyboard(messageId, ((TdApi.ReplyMarkupRemoveKeyboard) markup).isPersonal);
+        TdApi.ReplyMarkupRemoveKeyboard removeKeyboard = (TdApi.ReplyMarkupRemoveKeyboard) markup;
+        processHideKeyboard(messageId, removeKeyboard.isPersonal);
         break;
       }
       case TdApi.ReplyMarkupForceReply.CONSTRUCTOR: {
-        processForceReply(message, ((TdApi.ReplyMarkupForceReply) markup).isPersonal);
+        TdApi.ReplyMarkupForceReply forceReply = (TdApi.ReplyMarkupForceReply) markup;
+        processForceReply(message, forceReply.isPersonal);
+        context.setCustomBotPlaceholder(forceReply.inputFieldPlaceholder);
         break;
       }
       case TdApi.ReplyMarkupShowKeyboard.CONSTRUCTOR: {
-        processShowKeyboard(messageId, (TdApi.ReplyMarkupShowKeyboard) markup);
+        TdApi.ReplyMarkupShowKeyboard showKeyboard = (TdApi.ReplyMarkupShowKeyboard) markup;
+        processShowKeyboard(messageId, showKeyboard);
         if (type == TYPE_GROUP || type == TYPE_SUPERGROUP) {
           context.showReply(message, false, false); // FIXME?
         }
+        context.setCustomBotPlaceholder(showKeyboard.inputFieldPlaceholder);
+        break;
+      }
+      case TdApi.ReplyMarkupInlineKeyboard.CONSTRUCTOR: {
         break;
       }
     }

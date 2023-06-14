@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.component.MediaCollectorDelegate;
@@ -44,6 +44,7 @@ import org.thunderdog.challegram.mediaview.data.MediaStack;
 import org.thunderdog.challegram.telegram.TGLegacyManager;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibStatusManager;
+import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.theme.Theme;
 import org.thunderdog.challegram.tool.DrawAlgorithms;
 import org.thunderdog.challegram.tool.Drawables;
@@ -282,7 +283,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
     if (this.scaleFactor != scaleFactor) {
       int oldTextMaxWidth = getCheckTextMaxWidth();
       this.scaleFactor = scaleFactor;
-      if (!BitwiseUtils.getFlag(flags, FLAG_NO_EXPAND)) {
+      if (!BitwiseUtils.hasFlag(flags, FLAG_NO_EXPAND)) {
         if (!byScroll) {
           if (wouldCollapse(fromFactor) == wouldCollapse(toScaleFactor)) {
             setAvatarAllowanceFactor(1f);
@@ -416,7 +417,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
   private int innerLeftMargin, innerRightMargin, innerRightMarginStart = -1;
 
   private int getInnerRightMargin () {
-    return !BitwiseUtils.getFlag(flags, FLAG_HAD_FULL_EXPAND) && innerRightMarginStart != -1 ? innerRightMarginStart : innerRightMargin;
+    return !BitwiseUtils.hasFlag(flags, FLAG_HAD_FULL_EXPAND) && innerRightMarginStart != -1 ? innerRightMarginStart : innerRightMargin;
   }
 
   public void setInnerRightMarginStart (int rightMarginStart) {
@@ -560,7 +561,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
   }
 
   private int getExpandedMaxTextWidth () {
-    return (int) ((float) (getMeasuredWidth() - Screen.dp(11f) * 2) / avatarTextScale) - (BitwiseUtils.getFlag(flags, FLAG_SHOW_VERIFY) ? Screen.dp(20f) : 0);
+    return (int) ((float) (getMeasuredWidth() - Screen.dp(11f) * 2) / avatarTextScale) - (BitwiseUtils.hasFlag(flags, FLAG_SHOW_VERIFY) ? Screen.dp(20f) : 0);
   }
 
   /*private int calculateTextMaxWidth (boolean allowScale) {
@@ -695,7 +696,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
   public void setMuteFadeFactor (float factor) {
     if (this.muteFadeFactor != factor) {
       this.muteFadeFactor = factor;
-      if (BitwiseUtils.getFlag(flags, FLAG_SHOW_MUTE) && !BitwiseUtils.getFlag(flags, FLAG_IGNORE_MUTE)) {
+      if (BitwiseUtils.hasFlag(flags, FLAG_SHOW_MUTE) && !BitwiseUtils.hasFlag(flags, FLAG_IGNORE_MUTE)) {
         invalidate();
       }
     }
@@ -714,7 +715,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
   }
 
   public void setIgnoreMute (boolean ignoreMute) {
-    if (setFlags(BitwiseUtils.setFlag(flags, FLAG_IGNORE_MUTE, ignoreMute)) && BitwiseUtils.getFlag(flags, FLAG_SHOW_MUTE)) {
+    if (setFlags(BitwiseUtils.setFlag(flags, FLAG_IGNORE_MUTE, ignoreMute)) && BitwiseUtils.hasFlag(flags, FLAG_SHOW_MUTE)) {
       layoutTitle();
       invalidate();
     }
@@ -736,7 +737,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
     location.set(receiver.getLeft(), receiver.getTop(), receiver.getRight(), receiver.getBottom());
     location.setClip(0, Math.max(-receiver.getTop(), 0), 0, Math.max(0, receiver.getBottom() - calculateHeaderHeight()));
     float radius = receiver.getDisplayRadius();
-    location.setColorId(R.id.theme_color_headerBackground);
+    location.setColorId(ColorId.headerBackground);
     location.setRoundings(radius, radius, radius, radius);
     return location;
   }
@@ -872,7 +873,7 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
         if (showMute) {
           float muteAlpha = (1f - this.muteFadeFactor) * iconAlpha;
           Drawable drawable = getSparseDrawable(R.drawable.deproko_baseline_notifications_off_24, 0);
-          Drawables.draw(c, drawable, baseIconLeft + iconsAdded, trimmedTitle.getHeight() / 2f - drawable.getMinimumHeight() / 2f, PorterDuffPaint.get(R.id.theme_color_headerText, muteAlpha * .4f));
+          Drawables.draw(c, drawable, baseIconLeft + iconsAdded, trimmedTitle.getHeight() / 2f - drawable.getMinimumHeight() / 2f, PorterDuffPaint.get(ColorId.headerText, muteAlpha * .4f));
           iconLeft += drawable.getMinimumWidth();
         }
 
@@ -900,22 +901,22 @@ public class ComplexHeaderView extends BaseView implements RtlCheckListener, Str
           float top = baseSubtitleTop - Screen.dp(13f) * textAlpha;
           int statusTextColor;
           float darkness = Theme.getDarkFactor();
-          int knownThemeColorId = 0;
+          int knownColorId = 0;
           if (darkness == 0f) {
             if (this instanceof ChatHeaderView) {
               statusTextColor = Theme.headerTextColor();
-              knownThemeColorId = R.id.theme_color_headerText;
+              knownColorId = ColorId.headerText;
             } else {
               statusTextColor = ColorUtils.color(0xff, (subtitleColor & 0x00ffffff));
             }
           } else if (darkness == 1f) {
             statusTextColor = Theme.chatListActionColor();
-            knownThemeColorId = R.id.theme_color_chatListAction;
+            knownColorId = ColorId.chatListAction;
           } else {
             statusTextColor = ColorUtils.fromToArgb(this instanceof ChatHeaderView ? Theme.headerTextColor() : ColorUtils.color(0xff, (subtitleColor & 0x00ffffff)), Theme.chatListActionColor(), darkness);
-            knownThemeColorId = R.id.theme_color_chatListAction;
+            knownColorId = ColorId.chatListAction;
           }
-          DrawAlgorithms.drawStatus(c, state, baseTextLeft, top + text.getLineHeight() / 2f, ColorUtils.alphaColor(statusVisibility, statusTextColor), this, statusVisibility == 1f ? knownThemeColorId : 0);
+          DrawAlgorithms.drawStatus(c, state, baseTextLeft, top + text.getLineHeight() / 2f, ColorUtils.alphaColor(statusVisibility, statusTextColor), this, statusVisibility == 1f ? knownColorId : 0);
           text.draw(c, (int) baseTextLeft, (int) top, null, statusVisibility);
         }
       }

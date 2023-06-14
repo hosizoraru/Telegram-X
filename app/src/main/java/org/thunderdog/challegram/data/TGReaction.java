@@ -8,7 +8,7 @@ import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.component.sticker.TGStickerObj;
 import org.thunderdog.challegram.config.Config;
 import org.thunderdog.challegram.loader.ComplexReceiver;
@@ -150,9 +150,11 @@ public class TGReaction {
   }
 
   private void loadAnimationAndCache (TdApi.File file) {
-    if (!TD.isFileLoadedAndExists(file)) {
-      tdlib.files().downloadFile(file);
-    }
+    tdlib.files().isFileLoadedAndExists(file, loadedAndExists -> {
+      if (!loadedAndExists) {
+        tdlib.files().downloadFile(file);
+      }
+    });
   }
 
   public int getId () {

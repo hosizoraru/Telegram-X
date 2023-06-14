@@ -37,10 +37,11 @@ import androidx.annotation.RawRes;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.FileProvider;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
+import org.thunderdog.challegram.TDLib;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.config.Config;
 import org.thunderdog.challegram.core.BaseThread;
@@ -49,6 +50,7 @@ import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.helper.Recorder;
 import org.thunderdog.challegram.navigation.ViewController;
 import org.thunderdog.challegram.sync.SyncAdapter;
+import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.ui.MainController;
 import org.thunderdog.challegram.ui.MessagesController;
@@ -63,9 +65,9 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.List;
 
+import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.FileUtils;
 import me.vkryl.core.StringUtils;
-import me.vkryl.core.BitwiseUtils;
 import me.vkryl.leveldb.LevelDB;
 import me.vkryl.td.ChatId;
 
@@ -236,15 +238,15 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
   public static final int LED_COLOR_DEFAULT = LED_COLORS[1]; // Blue
   public static final int LED_COLOR_UNSET = 0;
   public static final int[] LED_COLORS_IDS = {
-    R.id.theme_color_ledWhite,
-    R.id.theme_color_ledBlue,
-    R.id.theme_color_ledRed,
-    R.id.theme_color_ledOrange,
-    R.id.theme_color_ledYellow,
-    R.id.theme_color_ledGreen,
-    R.id.theme_color_ledCyan,
-    R.id.theme_color_ledPurple,
-    R.id.theme_color_ledPink
+    ColorId.ledWhite,
+    ColorId.ledBlue,
+    ColorId.ledRed,
+    ColorId.ledOrange,
+    ColorId.ledYellow,
+    ColorId.ledGreen,
+    ColorId.ledCyan,
+    ColorId.ledPurple,
+    ColorId.ledPink
   };
 
   public static final int[] LED_COLORS_STRINGS = {
@@ -330,7 +332,12 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Tdlib tdlib = ((TdlibNotificationManager) msg.obj).tdlib;
             TdlibNotificationChannelGroup.cleanupChannelGroups(context);
-            tdlib.notifications().createChannels();
+            try {
+              tdlib.notifications().createChannels();
+            } catch (TdlibNotificationChannelGroup.ChannelCreationFailureException e) {
+              TDLib.Tag.notifications("Unable to create notification channels:\n%s", Log.toString(e));
+              tdlib.settings().trackNotificationChannelProblem(e, 0);
+            }
             TdlibNotificationChannelGroup.cleanupChannels(tdlib);
           }
           break;
@@ -1120,7 +1127,7 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
 
   private TdlibNotificationChannelGroup channelGroupCache;
 
-  public void createChannels () {
+  public void createChannels () throws TdlibNotificationChannelGroup.ChannelCreationFailureException {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       long accountUserId = tdlib.myUserId(true);
       if (accountUserId != 0) {
@@ -1129,7 +1136,7 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
     }
   }
 
-  public TdlibNotificationChannelGroup getChannelCache () {
+  public TdlibNotificationChannelGroup getChannelCache () throws TdlibNotificationChannelGroup.ChannelCreationFailureException {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       long accountUserId = tdlib.myUserId(true);
       TdApi.User account = myUser();
@@ -1146,7 +1153,7 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
     return null;
   }
 
-  public Object getSystemChannel (TdlibNotificationGroup group) {
+  public Object getSystemChannel (TdlibNotificationGroup group) throws TdlibNotificationChannelGroup.ChannelCreationFailureException {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       return getChannelCache().getChannel(group, false);
     }
@@ -1188,7 +1195,12 @@ public class TdlibNotificationManager implements UI.StateListener, Passcode.Lock
       settings.setChannelVersion(newVersion);
     }
     editor.apply();
-    TdlibNotificationChannelGroup.updateChannelSettings(tdlib, selfUserId, tdlib.account().isDebug(), getChannelsGlobalVersion(), scope, chatId, newVersion);
+    try {
+      TdlibNotificationChannelGroup.updateChannelSettings(tdlib, selfUserId, tdlib.account().isDebug(), getChannelsGlobalVersion(), scope, chatId, newVersion);
+    } catch (TdlibNotificationChannelGroup.ChannelCreationFailureException e) {
+      TDLib.Tag.notifications("Unable to increment notification channel version for chat %d:\n%s", chatId, Log.toString(e));
+      tdlib.settings().trackNotificationChannelProblem(e, chatId);
+    }
     onUpdateNotificationChannels(selfUserId);
     if (chatId != 0) {
       tdlib.listeners().updateNotificationChannel(chatId);

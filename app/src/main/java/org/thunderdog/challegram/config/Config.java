@@ -19,11 +19,12 @@ import android.view.WindowManager;
 
 import androidx.annotation.Dimension;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.BuildConfig;
 import org.thunderdog.challegram.N;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.data.TD;
+import org.thunderdog.challegram.theme.ColorId;
 
 public class Config {
   public static final boolean SUPPORT_SYSTEM_UNDERLINE_SPAN = true;
@@ -59,8 +60,6 @@ public class Config {
 
   public static final boolean TEST_NOTIFICATION_PROBLEM_RESOLUTION = false; // BuildConfig.DEBUG;
 
-  public static final boolean SO_SHARED = true;
-
   public static final boolean NEED_TDLIB_CLEANUP = false;
 
   public static final boolean FAKE_BACKGROUND_CONNECTION_STATE = true;
@@ -82,8 +81,8 @@ public class Config {
 
   // Fields from default config.
 
-  public static final int STATUS_BAR_COLOR_ID = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? R.id.theme_color_statusBar : R.id.theme_color_statusBarLegacy;
-  public static final int STATUS_BAR_TEXT_COLOR_ID = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? R.id.theme_color_statusBarContent : R.id.theme_color_statusBarLegacyContent;
+  public static final int STATUS_BAR_COLOR_ID = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? ColorId.statusBar : ColorId.statusBarLegacy;
+  public static final int STATUS_BAR_TEXT_COLOR_ID = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? ColorId.statusBarContent : ColorId.statusBarLegacyContent;
 
   public static final boolean DISABLE_SENDING_MEDIA_CACHE = false; // BuildConfig.DEBUG; // FIXME: TDLib
   public static final boolean WORKAROUND_NEED_MODIFY = true; // FIXME TDLib
@@ -164,7 +163,8 @@ public class Config {
 
   public static final boolean USE_GROUP_NAMES = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
 
-  public static final boolean HEADLESS_RECENT_PACK = false;
+  public static final boolean FORCE_SHOW_RECENTS_STICKERS_TITLE = false;
+  public static final int DEFAULT_SHOW_RECENT_STICKERS_COUNT = 10;
 
   public static final boolean USE_TEXT_ADVANCE = true; // Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
 
@@ -255,7 +255,7 @@ public class Config {
 
   public static final boolean REVEAL_ANIMATION_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
 
-  public static final boolean REMOVE_INTRO = !BuildConfig.DEBUG; // true;
+  public static final boolean REMOVE_INTRO = true;
 
   public static final boolean TEST_CHAT_COUNTERS = false;
 
@@ -294,4 +294,7 @@ public class Config {
   public static final boolean USE_HARDWARE_PHOTO_VIEWER_CONFIG = false;
 
   public static final boolean REQUIRE_FIREBASE_SERVICES_FOR_SAFETYNET = false;
+
+  public static final int VOIP_CONNECTION_MIN_LAYER = 65;
+  public static final boolean FORCE_DIRECT_TGVOIP = false;
 }

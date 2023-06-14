@@ -36,8 +36,9 @@ import android.widget.LinearLayout;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 
-import org.drinkless.td.libcore.telegram.TdApi;
+import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.BaseActivity;
+import org.thunderdog.challegram.BuildConfig;
 import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.core.Lang;
@@ -48,6 +49,7 @@ import org.thunderdog.challegram.service.TGCallService;
 import org.thunderdog.challegram.support.ViewSupport;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibCache;
+import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.tool.DrawAlgorithms;
 import org.thunderdog.challegram.tool.Drawables;
 import org.thunderdog.challegram.tool.Fonts;
@@ -56,7 +58,6 @@ import org.thunderdog.challegram.tool.Screen;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.tool.Views;
 import org.thunderdog.challegram.util.CustomTypefaceSpan;
-import org.thunderdog.challegram.voip.VoIPController;
 import org.thunderdog.challegram.voip.gui.CallSettings;
 import org.thunderdog.challegram.widget.AvatarView;
 import org.thunderdog.challegram.widget.EmojiTextView;
@@ -318,7 +319,7 @@ public class CallController extends ViewController<CallController.Arguments> imp
         updateEmojiPosition();
       }
     };
-    ViewSupport.setThemedBackground(contentView, R.id.theme_color_headerBackground, this);
+    ViewSupport.setThemedBackground(contentView, ColorId.headerBackground, this);
 
     avatarView = new AvatarView(context) {
       private final Drawable topShadow = ScrimUtil.makeCubicGradientScrimDrawable(0xff000000, 2, Gravity.TOP, false);
@@ -433,7 +434,7 @@ public class CallController extends ViewController<CallController.Arguments> imp
     brandView.setEllipsize(TextUtils.TruncateAt.END);
     brandView.setLayoutParams(lp);
     brandView.setText(Lang.getString(R.string.VoipBranding).toUpperCase());
-    if (Log.checkLogLevel(Log.LEVEL_INFO)) {
+    if (Log.checkLogLevel(Log.LEVEL_INFO) || BuildConfig.EXPERIMENTAL) {
       brandView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick (View v) {
@@ -452,12 +453,22 @@ public class CallController extends ViewController<CallController.Arguments> imp
             view.post(new Runnable() {
               @Override
               public void run () {
+                TGCallService service = TGCallService.currentInstance();
+
                 SpannableStringBuilder b = new SpannableStringBuilder();
-                b.append("libtgvoip ");
-                b.append(VoIPController.getVersion());
+                if (service != null) {
+                  b.append(service.getLibraryNameAndVersion());
+                } else {
+                  b.append("service unavailable");
+                }
                 b.setSpan(new CustomTypefaceSpan(Fonts.getRobotoBold(), 0), 0, b.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                b.append("\n\n");
-                b.append(TGCallService.getLog());
+                if (service != null) {
+                  CharSequence log = service.getDebugString();
+                  if (!StringUtils.isEmpty(log)) {
+                    b.append("\n\n");
+                    b.append(log);
+                  }
+                }
                 view.setText(b);
                 if (view.getParent() != null) {
                   view.postDelayed(this, 500l);
@@ -737,38 +748,30 @@ public class CallController extends ViewController<CallController.Arguments> imp
 
   @Override
   public void onClick (View v) {
-    switch (v.getId()) {
-      case R.id.btn_emoji: {
-        if (isEmojiVisible) {
-          setEmojiExpanded(true);
-        }
-        break;
+    final int viewId = v.getId();
+    if (viewId == R.id.btn_emoji) {
+      if (isEmojiVisible) {
+        setEmojiExpanded(true);
       }
-      case R.id.btn_mute: {
-        if (!TD.isFinished(call)) {
-          if (callSettings == null) {
-            callSettings = new CallSettings(tdlib, call.id);
-          }
-          callSettings.setMicMuted(((ButtonView) v).toggleActive());
+    } else if (viewId == R.id.btn_mute) {
+      if (!TD.isFinished(call)) {
+        if (callSettings == null) {
+          callSettings = new CallSettings(tdlib, call.id);
         }
-        break;
+        callSettings.setMicMuted(((ButtonView) v).toggleActive());
       }
-      case R.id.btn_openChat: {
-        tdlib.ui().openPrivateChat(this, call.userId, null);
-        break;
-      }
-      case R.id.btn_speaker: {
-        if (!TD.isFinished(call)) {
-          if (callSettings == null) {
-            callSettings = new CallSettings(tdlib, call.id);
-          }
-          if (callSettings.isSpeakerModeEnabled()) {
-            callSettings.setSpeakerMode(CallSettings.SPEAKER_MODE_NONE);
-          } else {
-            callSettings.toggleSpeakerMode(this);
-          }
+    } else if (viewId == R.id.btn_openChat) {
+      tdlib.ui().openPrivateChat(this, call.userId, null);
+    } else if (viewId == R.id.btn_speaker) {
+      if (!TD.isFinished(call)) {
+        if (callSettings == null) {
+          callSettings = new CallSettings(tdlib, call.id);
         }
-        break;
+        if (callSettings.isSpeakerModeEnabled()) {
+          callSettings.setSpeakerMode(CallSettings.SPEAKER_MODE_NONE);
+        } else {
+          callSettings.toggleSpeakerMode(this);
+        }
       }
     }
   }
